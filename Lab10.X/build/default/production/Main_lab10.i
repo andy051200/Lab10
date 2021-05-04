@@ -2509,7 +2509,177 @@ extern __bank0 __bit __timeout;
 # 28 "C:/packs/Microchip/PIC16Fxxx_DFP/1.2.33/xc8\\pic\\include\\xc.h" 2 3
 # 32 "Main_lab10.c" 2
 
+# 1 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 1 3
+# 13 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef signed char int8_t;
 
+
+
+
+
+
+typedef signed int int16_t;
+
+
+
+
+
+
+
+typedef __int24 int24_t;
+
+
+
+
+
+
+
+typedef signed long int int32_t;
+# 52 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef unsigned char uint8_t;
+
+
+
+
+
+typedef unsigned int uint16_t;
+
+
+
+
+
+
+typedef __uint24 uint24_t;
+
+
+
+
+
+
+typedef unsigned long int uint32_t;
+# 88 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef signed char int_least8_t;
+
+
+
+
+
+
+
+typedef signed int int_least16_t;
+# 109 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef __int24 int_least24_t;
+# 118 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef signed long int int_least32_t;
+# 136 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef unsigned char uint_least8_t;
+
+
+
+
+
+
+typedef unsigned int uint_least16_t;
+# 154 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef __uint24 uint_least24_t;
+
+
+
+
+
+
+
+typedef unsigned long int uint_least32_t;
+# 181 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef signed char int_fast8_t;
+
+
+
+
+
+
+typedef signed int int_fast16_t;
+# 200 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef __int24 int_fast24_t;
+
+
+
+
+
+
+
+typedef signed long int int_fast32_t;
+# 224 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef unsigned char uint_fast8_t;
+
+
+
+
+
+typedef unsigned int uint_fast16_t;
+# 240 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef __uint24 uint_fast24_t;
+
+
+
+
+
+
+typedef unsigned long int uint_fast32_t;
+# 268 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef int32_t intmax_t;
+# 282 "C:\\Program Files\\Microchip\\xc8\\v2.31\\pic\\include\\c90\\stdint.h" 3
+typedef uint32_t uintmax_t;
+
+
+
+
+
+
+typedef int16_t intptr_t;
+
+
+
+
+typedef uint16_t uintptr_t;
+# 33 "Main_lab10.c" 2
+
+
+
+
+
+
+unsigned char valores_ascii[] =
+{
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90
+};
+
+unsigned int contador = 0;
 
 
 
@@ -2518,29 +2688,14 @@ void setup(void);
 void __attribute__((picinterrupt(("")))) isr(void)
 {
 
-
-    if (PIR1bits.ADIF==1)
+    if(PIR1bits.RCIF)
     {
+        PORTB= RCREG;
+        _delay((unsigned long)((100)*(8000000/4000000.0)));
+        PORTA= RCREG;
 
-        if (ADCON0bits.CHS == 0)
-        {
-            CCPR1L = (ADRESH>>1)+124;
-            CCP1CONbits.DC1B1 = ADRESH & 0b01;
-            CCP1CONbits.DC1B0 = (ADRESL>>7);
-            ADCON0bits.CHS = 1;
-        }
-
-        else
-        {
-            CCPR2L = (ADRESH>>1)+124;
-            CCP2CONbits.DC2B1 = ADRESH & 0b01;
-            CCP2CONbits.DC2B0 = (ADRESL>>7);
-            ADCON0bits.CHS = 0;
-        }
-        _delay((unsigned long)((50)*(8000000/4000000.0)));
-        PIR1bits.ADIF = 0;
-        ADCON0bits.GO = 1;
     }
+
 }
 
 
@@ -2548,9 +2703,22 @@ void __attribute__((picinterrupt(("")))) isr(void)
 void main(void)
 {
     setup();
-    ADCON0bits.GO=1;
 
-    while(1){}
+    while(1)
+    {
+        _delay((unsigned long)((200)*(8000000/4000.0)));
+        if (PIR1bits.TXIF)
+        {
+            TXREG = valores_ascii[contador] ;
+
+            contador++;
+            if (contador==26)
+            {
+                contador=0;
+            }
+        }
+
+    }
 }
 
 
@@ -2558,59 +2726,39 @@ void main(void)
 void setup(void)
 {
 
-    ANSEL = 0b00000011;
+    ANSEL = 0;
 
 
-    TRISA = 0b00000011;
-    TRISC= 0;
+    TRISA = 0;
+    TRISD = 0;
     PORTA=0;
-    PORTC=0;
+    PORTD=0;
 
 
-    OSCCONbits.IRCF2=1;
-    OSCCONbits.IRCF1=1;
-    OSCCONbits.IRCF0=1;
+    OSCCONbits.IRCF=0b111;
     OSCCONbits.SCS=1;
 
 
-    ADCON1bits.ADFM = 0 ;
-    ADCON1bits.VCFG0 = 0 ;
-    ADCON1bits.VCFG1 = 0 ;
-    ADCON0bits.ADCS = 2 ;
-    ADCON0bits.CHS = 0;
-    ADCON0bits.ADON = 1 ;
-    _delay((unsigned long)((50)*(8000000/4000000.0)));
+
+    TXSTAbits.SYNC = 0;
+    TXSTAbits.BRGH = 1;
+
+    BAUDCTLbits.BRG16 = 1;
+    SPBRGH=0x00;
+    SPBRG=207;
 
 
-    PR2 = 249;
-
-    TRISCbits.TRISC2=1;
-    CCP1CONbits.P1M = 0;
-    CCP1CONbits.CCP1M = 0b1100;
-    CCPR1L = 0x0f ;
-    CCP1CONbits.DC1B = 0;
-
-    TRISCbits.TRISC1 = 1;
-    CCP2CONbits.CCP2M = 0b1100;
-    CCPR2L = 0x0f;
-    CCP2CONbits.DC2B1 = 0;
-
-
-    PIR1bits.TMR2IF = 0;
-    T2CONbits.T2CKPS = 0b11;
-    T2CONbits.TMR2ON = 1;
-
-    while(PIR1bits.TMR2IF==0);
-    PIR1bits.TMR2IF=0;
-    TRISCbits.TRISC2 = 0;
-    TRISCbits.TRISC1= 0;
+    RCSTAbits.SPEN=1;
+    RCSTAbits.RX9=0;
+    RCSTAbits.CREN=1;
+    TXSTAbits.TXEN = 1;
 
 
 
     INTCONbits.GIE=1;
     INTCONbits.PEIE=1 ;
 
-    PIE1bits.ADIE = 1 ;
-    PIR1bits.ADIF = 0;
+    PIE1bits.RCIE = 1 ;
+    PIR1bits.RCIF = 0;
     return;
 }
