@@ -36,45 +36,34 @@ Descripcion: portA y POrtD con Leds y puertos Tx y RX con terminal
 /*-----------------------------------------------------------------------------
 -------------------------------- variables -----------------------------------
 -----------------------------------------------------------------------------*/
-unsigned char valores_ascii[] = 
+unsigned char valores_ascii1[] = 
 {
-    65, //A
-    66, //B
-    67, //C
-    68, //D
-    69, //E
-    70, //F
-    71, //G
-    72, //H
-    73, //I
-    74, //J
-    75, //K
-    76, //L
-    77, //M
-    78, //N
-    79, //O
-    80, //P
-    81, //Q
-    82, //R
-    83, //S
-    84, //T
-    85, //U
-    86, //V
-    87, //W
-    88, //X
-    89, //Y
-    90 //Z    
+       83,69,76,69,67,67,73,79,78,65,32,85,78,65,32,79,80,67,73,79,78
+    // S   E  L  E  C  C  I  O  N  E _   U  N  A  _  O  P  C  I  O  N
 };
-
-unsigned int contador = 0; // varible para incrementar
+unsigned char valores_ascii2[] = 
+{
+    49, 41, 32, 80, 79,82,84,32,66
+};
+  
+char valores;
+//int contador1 = 0; // varible para incrementar
+//int contador2 = 0; // varible para incrementar
 
 /*-----------------------------------------------------------------------------
 -------------------------prototipos de funciones-------------------------------
 -----------------------------------------------------------------------------*/
-void setup(void);  //funcion para configuracion de registros del PIC
+void transmision(char datos);   //para funcion de transmision
+char recepcion();               // para funcion de recepcion
+void cadena_datos(char *str);   // para funcion de enviar caracteres
+void setup(void);               //funcion para configuracion de registros del PIC
+
+/*-----------------------------------------------------------------------------
+----------------------------- interrupciones ----------------------------------
+-----------------------------------------------------------------------------*/
 void __interrupt() isr(void) //funcion de interrupciones
 {
-    //interrupcion de recibir datos
+    /*//interrupcion de recibir datos
     if(PIR1bits.RCIF)
     {
         PORTB= RCREG;    //PORTB toma el valor de recepcion
@@ -82,30 +71,94 @@ void __interrupt() isr(void) //funcion de interrupciones
         PORTA= RCREG;
         
     }
-    
+    */
 }
 /*-----------------------------------------------------------------------------
 ----------------------------- ciclo principal----------------------------------
 -----------------------------------------------------------------------------*/
-void main(void)  //funcion principal sin retorno
+
+//funcion para transmision
+void transmision(char datos)
+    {
+    while(TXSTAbits.TRMT==0);
+    TXREG=datos;
+    }
+
+//funcion para recepcion
+char recepcion()
+    {
+    return RCREG;
+    }
+
+//funcion para enviar caracteres 
+void cadena_datos(char *str)
+    {
+    while(*str != '\0')
+        {
+        transmision(*str);
+        str++;
+        }
+    }
+
+//funcion principal
+void main(void) 
 {  
     setup();                    //Configuraciones generales del PIC
+    //printf("\r wenas, solo estoy probando  \r");
     //---------------------loop principal del programa ------------------------
     while(1)            //se hace loop infinito mientras sea  
     {
-        __delay_ms(200);
+       cadena_datos("\r  Que quiere hacer  \r");
+       cadena_datos(" 1)Poner caracteres \r");
+       cadena_datos(" 2) POner valores en POrtA \r");
+       cadena_datos(" 3) POner valores en POrtC \r");
+       
+       while(PIR1bits.RCIF==0);
+       valores = recepcion;
+       
+       switch(valores)
+       {
+           case ('1'):
+               cadena_datos(" Wenas \r");
+               break;
+           
+           case ('2'):
+               cadena_datos("Poner los valores en PortA: ");
+               while(PIR1bits.RCIF==0);
+               PORTA = recepcion;
+               cadena_datos("\r Listo compadre \r");
+               break;
+           
+           case ('3'):
+               cadena_datos("Poner los valores en PortC: ");
+               while(PIR1bits.RCIF==0);
+               PORTD = recepcion;
+               cadena_datos("\r Listo compadre \r");
+               break;   
+       }
+    }    
+        
+        /*__delay_ms(200);
         if (PIR1bits.TXIF)
         {
-            TXREG = valores_ascii[contador] ;
+            TXREG = valores_ascii1[contador1] ;
+          
+            //TXREG = valores_ascii3[contador] ;
             //TXREG = 'A';
-            contador++;
-            if (contador==26)
+            
+            contador1++;
+            if (contador1==21) 
             {
-                contador=0;
+                TXREG = valores_ascii2[contador2] ;
+                contador2++;
             }
-        }
+            if (contador2==9)
+            {
+                contador2=9;
+            }
+        }*/
         
-    }                  
+                      
 }
 /*-----------------------------------------------------------------------------
 --------------------------- configuraciones ----------------------------------
@@ -114,10 +167,12 @@ void setup(void) //FUNCION PARA CONFIGURACION DE ENTRADAS Y SALIDAS
 {
     //CONFIGURACION DE ENTRADAS/SALIDAS DIGITALES
     ANSEL = 0;                  //no hay entradas analógicas
+    ANSELH = 0;                 //no hay entradas analógicas
     
     //CONFIGURACION DE ENTRADAS/SALIDAS ANLAGÓGICAS
     TRISA = 0;                  //se define PortA como salida
     TRISD = 0;                  // se define PortC como salida
+    
     PORTA=0;                    // se limpia PortA
     PORTD=0;                    // se limpia PortC 
     
@@ -126,7 +181,7 @@ void setup(void) //FUNCION PARA CONFIGURACION DE ENTRADAS Y SALIDAS
     OSCCONbits.SCS=1;           //configuracion de oscilador interno
             
     //CONFIGURACION DE TRANSMISION UART
-    //TXSTAbits.TXEN = 1;         //se habilita la transmisión
+    TXSTAbits.TXEN = 1;         //se habilita la transmisión
     TXSTAbits.SYNC = 0;         //se habilita modo asíncrono
     TXSTAbits.BRGH = 1;         //transmisión rápida
     
@@ -135,9 +190,9 @@ void setup(void) //FUNCION PARA CONFIGURACION DE ENTRADAS Y SALIDAS
     SPBRG=207;
     
     //CONFIGURACION DE RECEPCION UART
-    RCSTAbits.SPEN=1;           //
-    RCSTAbits.RX9=0;
-    RCSTAbits.CREN=1;
+    RCSTAbits.SPEN=1;           //se enciende el modulo
+    RCSTAbits.RX9=0;            //tranmision de 8bits
+    RCSTAbits.CREN=1;           //se activa la recepcion
     TXSTAbits.TXEN = 1;         //se habilita la transmisión
     
     //CONFIGURACION DE INTERRUPCIONES

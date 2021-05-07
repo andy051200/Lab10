@@ -2649,76 +2649,100 @@ typedef uint16_t uintptr_t;
 
 
 
-unsigned char valores_ascii[] =
+unsigned char valores_ascii1[] =
 {
-    65,
-    66,
-    67,
-    68,
-    69,
-    70,
-    71,
-    72,
-    73,
-    74,
-    75,
-    76,
-    77,
-    78,
-    79,
-    80,
-    81,
-    82,
-    83,
-    84,
-    85,
-    86,
-    87,
-    88,
-    89,
-    90
+       83,69,76,69,67,67,73,79,78,65,32,85,78,65,32,79,80,67,73,79,78
+
+};
+unsigned char valores_ascii2[] =
+{
+    49, 41, 32, 80, 79,82,84,32,66
 };
 
-unsigned int contador = 0;
+char valores;
 
 
 
 
+
+
+void transmision(char datos);
+char recepcion();
+void cadena_datos(char *str);
 void setup(void);
+
+
+
+
 void __attribute__((picinterrupt(("")))) isr(void)
 {
-
-    if(PIR1bits.RCIF)
-    {
-        PORTB= RCREG;
-        _delay((unsigned long)((100)*(8000000/4000000.0)));
-        PORTA= RCREG;
-
-    }
-
+# 75 "Main_lab10.c"
 }
 
+
+
+
+
+void transmision(char datos)
+    {
+    while(TXSTAbits.TRMT==0);
+    TXREG=datos;
+    }
+
+
+char recepcion()
+    {
+    return RCREG;
+    }
+
+
+void cadena_datos(char *str)
+    {
+    while(*str != '\0')
+        {
+        transmision(*str);
+        str++;
+        }
+    }
 
 
 void main(void)
 {
     setup();
 
+
     while(1)
     {
-        _delay((unsigned long)((200)*(8000000/4000.0)));
-        if (PIR1bits.TXIF)
-        {
-            TXREG = valores_ascii[contador] ;
+       cadena_datos("\r  Que quiere hacer  \r");
+       cadena_datos(" 1)Poner caracteres \r");
+       cadena_datos(" 2) POner valores en POrtA \r");
+       cadena_datos(" 3) POner valores en POrtC \r");
 
-            contador++;
-            if (contador==26)
-            {
-                contador=0;
-            }
-        }
+       while(PIR1bits.RCIF==0);
+       valores = recepcion;
 
+       switch(valores)
+       {
+           case ('1'):
+               cadena_datos(" Wenas \r");
+               break;
+
+           case ('2'):
+               cadena_datos("Poner los valores en PortA: ");
+               while(PIR1bits.RCIF==0);
+               PORTA = recepcion;
+               cadena_datos("\r Listo compadre \r");
+               break;
+
+           case ('3'):
+               cadena_datos("Poner los valores en PortC: ");
+               while(PIR1bits.RCIF==0);
+               PORTD = recepcion;
+               cadena_datos("\r Listo compadre \r");
+               break;
+       }
     }
+# 162 "Main_lab10.c"
 }
 
 
@@ -2727,10 +2751,12 @@ void setup(void)
 {
 
     ANSEL = 0;
+    ANSELH = 0;
 
 
     TRISA = 0;
     TRISD = 0;
+
     PORTA=0;
     PORTD=0;
 
@@ -2739,7 +2765,7 @@ void setup(void)
     OSCCONbits.SCS=1;
 
 
-
+    TXSTAbits.TXEN = 1;
     TXSTAbits.SYNC = 0;
     TXSTAbits.BRGH = 1;
 
