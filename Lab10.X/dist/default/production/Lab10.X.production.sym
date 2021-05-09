@@ -164,7 +164,7 @@ strings 50 1D5 STRING 50 0
 maintext 1D6 3CF CODE 1D6 0
 %locals
 dist/default/production\Lab10.X.production.o
-C:\Users\ANDYBO~1\AppData\Local\Temp\sioc.s
+C:\Users\ANDYBO~1\AppData\Local\Temp\sgfg.s
 740 F 0 CODE 0
 743 F 0 CODE 0
 796 F 0 CODE 0
@@ -258,7 +258,7 @@ Main_lab10.c
 64 1E1 0 CODE 0
 75 1E1 0 CODE 0
 64 4 0 CODE 0
-C:\Users\ANDYBO~1\AppData\Local\Temp\sioc.s
+C:\Users\ANDYBO~1\AppData\Local\Temp\sgfg.s
 1638 22 0 ENTRY 0
 1640 22 0 ENTRY 0
 1641 22 0 ENTRY 0
